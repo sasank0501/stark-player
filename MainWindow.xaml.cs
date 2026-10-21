@@ -153,23 +153,28 @@ public partial class MainWindow : Window
         // Windows 11's DWMWA_WINDOW_CORNER_PREFERENCE is the "correct" way to
         // ask for rounded corners - it rounds the whole composited window
         // surface, mpv's video included, since that's a native child HWND a
-        // WPF clip could never reach. But it is a no-op on this build (the
-        // registered ProductName is "Windows 10 IoT Enterprise LTSC 2024"
-        // despite a Windows-11-numbered build: LTSC channels stay on the
-        // Windows 10 shell, which never implemented it - confirmed by this
-        // call returning S_OK while producing no visible change). It costs
-        // nothing to still ask, for whichever machine this next runs on with
-        // a shell that honours it; UpdateWindowRegion below is what actually
-        // draws the rounding here, and everywhere DWM's attribute doesn't.
+        // WPF clip could never reach. It does take effect on this machine:
+        // build 26100 is Windows 11 24H2 even though the registry's
+        // ProductName still says "Windows 10" (a long-standing Windows 11
+        // quirk) - fullscreen captures show DWM's rounded frame, which is why
+        // ToggleFullscreen turns it off (SetFullscreenFrame).
+        // UpdateWindowRegion below still clips the corners for shells
+        // where this attribute does nothing.
         ApplyRoundedCorners(_hwnd);
         UpdateWindowRegion();
     }
 
     private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+    private const int DWMWA_BORDER_COLOR = 34;
+    private const int DWMWCP_DONOTROUND = 1;
     private const int DWMWCP_ROUND = 2;
+    private const uint DWMWA_COLOR_DEFAULT = 0xFFFFFFFF;
+    private const uint DWMWA_COLOR_NONE = 0xFFFFFFFE;
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int valueSize);
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref uint value, int valueSize);
 
     private static void ApplyRoundedCorners(IntPtr hwnd)
     {
@@ -181,6 +186,28 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             Log.Warn($"could not set DWMWA_WINDOW_CORNER_PREFERENCE: {ex.Message}");
+        }
+    }
+
+    // Fullscreen is a Normal-state window sized to the monitor (see
+    // ToggleFullscreen), and Windows 11's DWM rounds and outlines every
+    // Normal-state captioned window - it only skips that for Maximized ones.
+    // Left alone, that drew a rounded ~1px-per-100%-scale grey frame over the
+    // outermost video pixels on every edge (measured: 2px of #3B3B3B at 200%
+    // scale on a 2560x1600 panel). Square corners and no border while
+    // fullscreen; the normal rounded frame comes back on exit.
+    private static void SetFullscreenFrame(IntPtr hwnd, bool fullscreen)
+    {
+        try
+        {
+            int corners = fullscreen ? DWMWCP_DONOTROUND : DWMWCP_ROUND;
+            uint border = fullscreen ? DWMWA_COLOR_NONE : DWMWA_COLOR_DEFAULT;
+            DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref corners, sizeof(int));
+            DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, ref border, sizeof(uint));
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"could not set the DWM fullscreen frame: {ex.Message}");
         }
     }
 
@@ -697,6 +724,7 @@ public partial class MainWindow : Window
             var tl = toDip.Transform(new Point(mi.rcMonitor.Left, mi.rcMonitor.Top));
             var br = toDip.Transform(new Point(mi.rcMonitor.Right, mi.rcMonitor.Bottom));
             ResizeMode = ResizeMode.NoResize;
+            SetFullscreenFrame(_hwnd, true);
             WindowState = WindowState.Normal;
             Left = tl.X;
             Top = tl.Y;
@@ -728,6 +756,7 @@ public partial class MainWindow : Window
                 SidebarCol.Width = new GridLength(300);
             }
             ResizeMode = ResizeMode.CanResize;
+            SetFullscreenFrame(_hwnd, false);
             Left = _preFullscreenBounds.Left;
             Top = _preFullscreenBounds.Top;
             Width = _preFullscreenBounds.Width;

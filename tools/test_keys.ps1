@@ -163,7 +163,7 @@ Check 'screenshot folder is NexuSS' $inNexuSS "$shotDir"
 
 Write-Output ''
 $results | Format-Table -AutoSize | Out-String | Write-Output
-$fail = ($results | Where-Object Result -eq 'FAIL').Count
+$fail = @($results | Where-Object Result -eq 'FAIL').Count  # @(): 5.1 has no .Count on a single object
 Write-Output "$($results.Count - $fail)/$($results.Count) passed"
 
 $script:wr.Dispose(); $script:pipe.Dispose()

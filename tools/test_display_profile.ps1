@@ -21,7 +21,7 @@ param(
     [string]$VideoPath = ""   # optional: a local file to load for the fullscreen check; idle mpv works too
 )
 $ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Drawing
 # resolve the repo from this script location, so moving the repo does not
 # break the tests the way a hardcoded path did
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -208,8 +208,13 @@ try {
     # -------------------------------------------- fullscreen pixel coverage
     $hwnd = $proc.MainWindowHandle
     [void][DP]::ShowWindow($hwnd, 5)
-    [void][DP]::SetForegroundWindow($hwnd)
-    Start-Sleep -Milliseconds 500
+    # Windows refuses SetForegroundWindow from a background process unless it
+    # just received input; a real Alt tap is the standard way to qualify.
+    for ($i = 0; $i -lt 5 -and [DP]::GetForegroundWindow() -ne $hwnd; $i++) {
+        [DP]::Key(0x12)
+        [void][DP]::SetForegroundWindow($hwnd)
+        Start-Sleep -Milliseconds 400
+    }
     if ([DP]::GetForegroundWindow() -ne $hwnd) {
         Check 'fullscreen coverage' $false 'player never became foreground; skipped (result would be meaningless)'
     } else {
@@ -226,6 +231,32 @@ try {
                    ($efb.Right -eq $mi.rcMonitor.Right) -and ($efb.Bottom -eq $mi.rcMonitor.Bottom)
         Check 'fullscreen: window exactly covers monitor' $matches `
             ("window [{0},{1},{2},{3}] vs monitor [{4},{5},{6},{7}]" -f $efb.Left,$efb.Top,$efb.Right,$efb.Bottom,$mi.rcMonitor.Left,$mi.rcMonitor.Top,$mi.rcMonitor.Right,$mi.rcMonitor.Bottom)
+
+        # The rect check above passed while Windows 11's DWM was still drawing
+        # its rounded grey window frame over the outermost 2px of video - the
+        # window was the right size, DWM just painted on top of it. So check
+        # actual pixels: each screen edge pixel should match the pixel 3px
+        # further in (video/black is continuous across 3px; a frame is not).
+        $mw = $mi.rcMonitor.Right - $mi.rcMonitor.Left; $mh = $mi.rcMonitor.Bottom - $mi.rcMonitor.Top
+        $bmp = New-Object System.Drawing.Bitmap $mw, $mh
+        $gfx = [System.Drawing.Graphics]::FromImage($bmp)
+        $gfx.CopyFromScreen($mi.rcMonitor.Left, $mi.rcMonitor.Top, 0, 0, $bmp.Size)
+        $edgeDiff = 0; $edgeN = 0
+        $near = { param($a, $b) ([Math]::Abs($a.R-$b.R) + [Math]::Abs($a.G-$b.G) + [Math]::Abs($a.B-$b.B)) -le 24 }
+        for ($x = 16; $x -lt $mw - 16; $x += 9) {
+            $edgeN += 2
+            if (-not (& $near $bmp.GetPixel($x, 0) $bmp.GetPixel($x, 3))) { $edgeDiff++ }
+            if (-not (& $near $bmp.GetPixel($x, $mh-1) $bmp.GetPixel($x, $mh-4))) { $edgeDiff++ }
+        }
+        for ($y = 16; $y -lt $mh - 16; $y += 9) {
+            $edgeN += 2
+            if (-not (& $near $bmp.GetPixel(0, $y) $bmp.GetPixel(3, $y))) { $edgeDiff++ }
+            if (-not (& $near $bmp.GetPixel($mw-1, $y) $bmp.GetPixel($mw-4, $y))) { $edgeDiff++ }
+        }
+        $gfx.Dispose(); $bmp.Dispose()
+        # a few mismatches are real picture detail; a frame mismatches nearly everywhere
+        Check 'fullscreen: no window frame drawn over the video edges' ($edgeDiff -lt $edgeN * 0.05) `
+            "$edgeDiff / $edgeN edge samples differ from 3px inward"
 
         # ---------------------------------- shortcuts overlay: no overlapping text
         [DP]::Key(0xBF)  # '/' (OemQuestion) - opens the Keyboard Shortcuts overlay
@@ -280,6 +311,8 @@ finally {
 
 Write-Output ""
 $results | Format-Table -AutoSize | Out-String | Write-Output
-$fail = ($results | Where-Object Result -eq 'FAIL').Count
+# @() matters: in Windows PowerShell 5.1 a single PSCustomObject has no
+# .Count, so exactly one failure used to count as zero and report all-pass
+$fail = @($results | Where-Object Result -eq 'FAIL').Count
 Write-Output "$($results.Count - $fail)/$($results.Count) passed"
 if ($fail -gt 0) { exit 1 }
