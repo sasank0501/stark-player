@@ -4,14 +4,14 @@
 # threw" from "the click never landed" — the ambiguity that wasted time on this
 # project before. Then it confirms the process is still alive and a file dialog
 # actually appeared.
-param([string]$Exe = "bin\Debug\net10.0-windows\NexusPlayer.exe")
+param([string]$Exe = "bin\Debug\net10.0-windows\StarkPlayer.exe")
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 
 # resolve the repo from this script location, so moving the repo does not
 # break the tests the way a hardcoded path did
 Set-Location (Split-Path -Parent $PSScriptRoot)
-$log = "$env:APPDATA\NexusPlayerV2\nexus.log"
+$log = "$env:APPDATA\StarkPlayer\stark.log"
 $logBefore = if (Test-Path -LiteralPath $log) { (Get-Item -LiteralPath $log).Length } else { 0 }
 
 $p = Start-Process -FilePath $Exe -PassThru

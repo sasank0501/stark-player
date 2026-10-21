@@ -296,7 +296,7 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         ResizeMpvHost();
-        Log.Info("Nexus Player starting");
+        Log.Info("Stark Player starting");
 
         var mpvPath = MpvLocator.Locate(_settings);
         if (mpvPath == null)
@@ -341,7 +341,7 @@ public partial class MainWindow : Window
 
     private async Task<bool> StartMpv(string mpvPath)
     {
-        var pipeName = $"nexus-player-{Environment.ProcessId}";
+        var pipeName = $"stark-player-{Environment.ProcessId}";
         var hwnd = _mpvHost.Handle;
 
         var psi = new ProcessStartInfo
@@ -670,7 +670,7 @@ public partial class MainWindow : Window
             if (_mpvProcess is { HasExited: false }) _mpvProcess.Kill();
         }
         catch (Exception ex) { Log.Warn("mpv already gone: " + ex.Message); }
-        Log.Info("Nexus Player closed");
+        Log.Info("Stark Player closed");
     }
 
     // --- window chrome -----------------------------------------------------
@@ -876,7 +876,7 @@ public partial class MainWindow : Window
     private void ShowNowPlaying(PlaylistItem item) =>
         _overlay?.SetNowPlaying(TitleCleaner.ShowTitle(item.Path), TitleCleaner.EpisodeLabel(item.Path));
 
-    // Screenshots go to Pictures/NexuSS/<show - season>/ so a session's grabs stay
+    // Screenshots go to Pictures/StarkSS/<show - season>/ so a session's grabs stay
     // together instead of piling into one flat folder. mpv writes them itself;
     // this just points it at the right place whenever the file changes.
     private void ConfigureScreenshots(string path)
@@ -885,7 +885,7 @@ public partial class MainWindow : Window
         try
         {
             var root = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "NexuSS");
+                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "StarkSS");
             var dir = Path.Combine(root, TitleCleaner.FolderName(path));
             Directory.CreateDirectory(dir);
             Fire.AndForget(Ipc.SetProperty("screenshot-directory", dir), "screenshot directory");

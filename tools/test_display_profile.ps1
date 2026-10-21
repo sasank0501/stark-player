@@ -15,9 +15,9 @@
 # this window is genuinely foreground, matching test_keys.ps1's convention.
 #
 #   powershell -File tools\test_display_profile.ps1
-#   powershell -File tools\test_display_profile.ps1 -Exe "D:\NexusPlayer\NexusPlayer.exe"
+#   powershell -File tools\test_display_profile.ps1 -Exe "D:\StarkPlayer\StarkPlayer.exe"
 param(
-    [string]$Exe = "bin\Debug\net10.0-windows\NexusPlayer.exe",
+    [string]$Exe = "bin\Debug\net10.0-windows\StarkPlayer.exe",
     [string]$VideoPath = ""   # optional: a local file to load for the fullscreen check; idle mpv works too
 )
 $ErrorActionPreference = 'Stop'
@@ -161,7 +161,7 @@ function Get-MpvCommandLine($proc) {
     return $null
 }
 
-$settingsFile = Join-Path $env:APPDATA 'NexusPlayerV2\settings.json'
+$settingsFile = Join-Path $env:APPDATA 'StarkPlayer\settings.json'
 $hadSettings = Test-Path -LiteralPath $settingsFile
 $originalSettings = if ($hadSettings) { Get-Content -LiteralPath $settingsFile -Raw } else { $null }
 function Set-AutoSwitch([bool]$value) {

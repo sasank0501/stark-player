@@ -3,7 +3,7 @@
 # Invoked through UI Automation so a negative result means the handler is wrong,
 # not that a synthetic click missed. The effect is measured from mpv's own
 # time-pos, not from the UI.
-param([string]$Exe = "bin\Debug\net10.0-windows\NexusPlayer.exe")
+param([string]$Exe = "bin\Debug\net10.0-windows\StarkPlayer.exe")
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 # resolve the repo from this script location, so moving the repo does not
@@ -28,7 +28,7 @@ $p = Start-Process -FilePath $Exe -PassThru
 for ($i=0; $i -lt 60; $i++) { Start-Sleep -Milliseconds 250; $p.Refresh(); if ($p.MainWindowHandle -ne 0) { break } }
 Start-Sleep -Milliseconds 3000
 
-$script:pipe = New-Object System.IO.Pipes.NamedPipeClientStream '.', "nexus-player-$($p.Id)", 'InOut'
+$script:pipe = New-Object System.IO.Pipes.NamedPipeClientStream '.', "stark-player-$($p.Id)", 'InOut'
 $script:pipe.Connect(5000)
 $script:rd = New-Object System.IO.StreamReader $script:pipe
 $script:wr = New-Object System.IO.StreamWriter $script:pipe

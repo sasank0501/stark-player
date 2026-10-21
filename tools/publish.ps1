@@ -1,4 +1,4 @@
-# Builds the distributable: one self-contained NexusPlayer.exe with the .NET
+# Builds the distributable: one self-contained StarkPlayer.exe with the .NET
 # runtime baked in, plus the mpv toolchain beside it so the folder is a complete,
 # movable app.
 #
@@ -7,7 +7,7 @@
 #
 #   powershell -File tools\publish.ps1
 param(
-    [string]$Out = "$env:USERPROFILE\NexusPlayer",
+    [string]$Out = "$env:USERPROFILE\StarkPlayer",
     [string]$MpvDir = ""
 )
 
@@ -22,7 +22,7 @@ dotnet publish -c Release -r win-x64 --self-contained true `
     -p:DebugType=none `
     -o $Out --nologo
 
-$exe = Join-Path $Out 'NexusPlayer.exe'
+$exe = Join-Path $Out 'StarkPlayer.exe'
 if (-not (Test-Path -LiteralPath $exe)) { throw "publish produced no exe at $exe" }
 
 # --- the mpv toolchain -------------------------------------------------------
@@ -59,16 +59,16 @@ if ($MpvDir -and (Test-Path -LiteralPath (Join-Path $MpvDir 'mpv.exe'))) {
 }
 
 @"
-Nexus Player
+Stark Player
 ============
 
-Run NexusPlayer.exe.
+Run StarkPlayer.exe.
 
 What is in this folder
 ----------------------
-NexusPlayer.exe      the player. The .NET runtime is baked in, so no .NET
+StarkPlayer.exe      the player. The .NET runtime is baked in, so no .NET
                      install is required.
-mpv.exe              the actual video engine. Nexus Player is a frontend: it
+mpv.exe              the actual video engine. Stark Player is a frontend: it
                      launches mpv as a separate process, has it render into a
                      child window, and controls it over a JSON IPC pipe.
 yt-dlp.exe           resolves streaming links (YouTube and friends). Keep it
@@ -78,7 +78,7 @@ yt-dlp.exe           resolves streaming links (YouTube and friends). Keep it
 d3dcompiler_43.dll   shader compilation support for mpv on some systems.
 
 Configuration still lives in %APPDATA%\mpv (mpv.conf, subtitle styling,
-Anime4K shaders) and %APPDATA%\NexusPlayerV2 (settings, session, logs). On a
+Anime4K shaders) and %APPDATA%\StarkPlayer (settings, session, logs). On a
 different machine those would need copying too, or mpv falls back to defaults.
 "@ | Set-Content -LiteralPath (Join-Path $Out 'README.txt') -Encoding utf8
 

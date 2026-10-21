@@ -25,7 +25,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
 if (-not $Mpv) {
-    $Mpv = 'C:\Users\Sasank\NexusPlayer\mpv.exe'
+    $Mpv = 'C:\Users\Sasank\StarkPlayer\mpv.exe'
     if (-not (Test-Path $Mpv)) { $Mpv = (Get-Command mpv.exe -ErrorAction SilentlyContinue).Source }
 }
 if (-not $Mpv -or -not (Test-Path $Mpv)) { throw "mpv.exe not found; pass -Mpv" }
@@ -73,7 +73,7 @@ function Run-Case([string]$label, [bool]$pinScripts) {
     Write-Host ""
     Write-Host "=== $label ==="
 
-    $pipe = "nexus-rendition-test-$([guid]::NewGuid().ToString('N').Substring(0,8))"
+    $pipe = "stark-rendition-test-$([guid]::NewGuid().ToString('N').Substring(0,8))"
     $args = @(
         "--input-ipc-server=\\.\pipe\$pipe",
         '--idle=yes', '--vo=null', '--ao=null',

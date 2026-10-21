@@ -5,7 +5,7 @@
 # that path (focus handling, the yt-dlp handoff, the "could not play" guard).
 # The verdict comes from mpv's own properties.
 param(
-    [string]$Exe = "bin\Debug\net10.0-windows\NexusPlayer.exe",
+    [string]$Exe = "bin\Debug\net10.0-windows\StarkPlayer.exe",
     [string]$Url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 )
 $ErrorActionPreference = 'Stop'
@@ -32,7 +32,7 @@ for ($i=0; $i -lt 60; $i++) { Start-Sleep -Milliseconds 250; $p.Refresh(); if ($
 Start-Sleep -Milliseconds 3000
 Write-Output "pid $($p.Id)"
 
-$script:pipe = New-Object System.IO.Pipes.NamedPipeClientStream '.', "nexus-player-$($p.Id)", 'InOut'
+$script:pipe = New-Object System.IO.Pipes.NamedPipeClientStream '.', "stark-player-$($p.Id)", 'InOut'
 $script:pipe.Connect(5000)
 $script:rd = New-Object System.IO.StreamReader $script:pipe
 $script:wr = New-Object System.IO.StreamWriter $script:pipe
@@ -128,7 +128,7 @@ if (-not $box) {
 }
 
 Write-Output "`n--- mpv output mentioning ytdl/youtube/error ---"
-$mpvlog = "$env:APPDATA\NexusPlayerV2\mpv.log"
+$mpvlog = "$env:APPDATA\StarkPlayer\mpv.log"
 if (Test-Path -LiteralPath $mpvlog) {
     Get-Content -LiteralPath $mpvlog | Select-String -Pattern 'ytdl|youtube|error|failed' |
         Select-Object -Last 8 | ForEach-Object { Write-Output "  $_" }

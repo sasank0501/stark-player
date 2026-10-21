@@ -68,7 +68,7 @@ function Check($name, $ok, $detail) {
 # resolve the repo from this script location, so moving the repo does not
 # break the tests the way a hardcoded path did
 Set-Location (Split-Path -Parent $PSScriptRoot)
-$proc = Start-Process -FilePath "bin\Debug\net10.0-windows\NexusPlayer.exe" -PassThru
+$proc = Start-Process -FilePath "bin\Debug\net10.0-windows\StarkPlayer.exe" -PassThru
 for ($i = 0; $i -lt 60; $i++) {
     Start-Sleep -Milliseconds 250
     $proc.Refresh()
@@ -78,7 +78,7 @@ Start-Sleep -Milliseconds 3500
 $hwnd = $proc.MainWindowHandle
 Write-Output "v2 pid $($proc.Id) hwnd $hwnd"
 
-Connect-Mpv "nexus-player-$($proc.Id)"
+Connect-Mpv "stark-player-$($proc.Id)"
 Set-Prop 'mute' $true
 
 $dir = 'C:\Users\Sasank\Downloads\[FLE] Re ZERO Starting Life in Another World - S03 (WEB 1080p H.264 E-AC-3) [Dual Audio]'
@@ -145,7 +145,7 @@ $s2 = Get-Prop 'speed'
 Check '] (speed up, via mpv)' ($s2 -gt $s1) ("{0:N2} -> {1:N2}" -f $s1, $s2)
 Set-Prop 'speed' 1.0
 
-# screenshot: proves both the forwarded key and the NexuSS folder wiring
+# screenshot: proves both the forwarded key and the StarkSS folder wiring
 $shotDir = Get-Prop 'screenshot-directory'
 Write-Output "screenshot-directory reported by mpv: $shotDir"
 $countBefore = 0
@@ -157,9 +157,9 @@ $countAfter = 0
 if ($shotDir -and (Test-Path -LiteralPath $shotDir)) {
     $countAfter = (Get-ChildItem -LiteralPath $shotDir -File -ErrorAction SilentlyContinue).Count
 }
-$inNexuSS = $shotDir -and ($shotDir -replace '/', '\') -like '*\NexuSS\*'
+$inStarkSS = $shotDir -and ($shotDir -replace '/', '\') -like '*\StarkSS\*'
 Check 'S (screenshot written)' ($countAfter -gt $countBefore) "$countBefore -> $countAfter file(s)"
-Check 'screenshot folder is NexuSS' $inNexuSS "$shotDir"
+Check 'screenshot folder is StarkSS' $inStarkSS "$shotDir"
 
 Write-Output ''
 $results | Format-Table -AutoSize | Out-String | Write-Output
