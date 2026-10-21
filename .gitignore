@@ -7,3 +7,5 @@ tools/**/obj/
 lucide_names.txt
 lucide_svgs/
 .claude/settings.local.json
+__pycache__/
+tools/icons-preview.png
