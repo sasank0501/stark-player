@@ -1,3 +1,11 @@
 bin/
 obj/
 *.user
+secrets.json
+tools/**/bin/
+tools/**/obj/
+lucide_names.txt
+lucide_svgs/
+.claude/settings.local.json
+__pycache__/
+tools/icons-preview.png

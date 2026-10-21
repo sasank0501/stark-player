@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>stark.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <AssemblyName>StarkPlayer</AssemblyName>
+    <RootNamespace>MpvFrontend</RootNamespace>
+    <Product>Stark Player</Product>
+    <AssemblyTitle>Stark Player</AssemblyTitle>
+    <Version>2.0.0</Version>
+
+    <!-- surface async-void and nullability mistakes as build errors, not runtime crashes -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors>CS4014;CS1998</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- tools/ holds standalone helper projects (the title-parser harness). They
+         are built on their own; without this the app's default glob picks up
+         their generated AssemblyInfo.cs and the build fails on duplicate
+         assembly attributes. -->
+    <Compile Remove="tools/**" />
+    <None Remove="tools/**" />
+    <Page Remove="tools/**" />
+    <Resource Remove="tools/**" />
+  </ItemGroup>
+
+</Project>
